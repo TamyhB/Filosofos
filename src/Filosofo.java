@@ -1,4 +1,8 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class Filosofo implements Runnable {
@@ -33,7 +37,7 @@ public class Filosofo implements Runnable {
 	}
 	
 	public void comer(){
-		if(this.getMaoEsq() != 0 && this.getMaoDir() == 0){
+		/*if(this.getMaoEsq() != 0 && this.getMaoDir() == 0){
 			System.out.println("Preciso do garfo da mão direita para começar a comer :(");
 			this.setEstado("Estou esperando o garfo");
 		}
@@ -43,7 +47,8 @@ public class Filosofo implements Runnable {
 		}
         if(this.getMaoEsq() != 0 && this.getMaoDir() != 0){
         	setEstado("Estou comendo...");
-        }
+        }*/
+		System.out.println("Estou comendo");
     }
 	
     public void pensar(){
@@ -52,15 +57,15 @@ public class Filosofo implements Runnable {
         	this.setEstado("Estou pensando...");
     }
     public static void main(String[] args) throws UnknownHostException, IOException, InterruptedException {
-    	Thread t1 = new Thread(new Filosofo(new String[]{"acquire 1", "acquire 2"}));
+    	Thread t1 = new Thread(new Filosofo(new String[]{"acquire 1", "acquire 2", "release 1", "release 2", "finish 0"}));
 		t1.start();
-		Thread t2 = new Thread(new Filosofo(new String[]{"acquire 2", "acquire 3"}));
+		Thread t2 = new Thread(new Filosofo(new String[]{"acquire 2", "acquire 3", "release 2", "release 3", "finish 0"}));
 		t2.start();
-		Thread t3 = new Thread(new Filosofo(new String[]{"acquire 3", "acquire 4"}));
+		Thread t3 = new Thread(new Filosofo(new String[]{"acquire 3", "acquire 4", "release 3", "release 4", "finish 0"}));
 		t3.start();
-		Thread t4 = new Thread(new Filosofo(new String[]{"acquire 4", "acquire 5"}));
+		Thread t4 = new Thread(new Filosofo(new String[]{"acquire 4", "acquire 5", "release 4", "release 5", "finish 0"}));
 		t4.start();
-		Thread t5 = new Thread(new Filosofo(new String[]{"acquire 5", "acquire 1"}));
+		Thread t5 = new Thread(new Filosofo(new String[]{"acquire 5", "acquire 1", "release 5", "release 1", "finish 0"}));
 		t5.start();
 		
 		t1.join();
@@ -73,10 +78,139 @@ public class Filosofo implements Runnable {
 		this.msgs = msgs;
 		gotGarfo1 = false;
 		gotGarfo2 = false;
+		gotGarfo3 = false;
+		gotGarfo4 = false;
+		gotGarfo5 = false;
 	}
 	
+    public void sendReleaseMsg(String msg, PrintStream pstream, BufferedReader in) throws IOException{
+		if(msg.split(" ")[1] == "1" && gotGarfo1 || msg.split(" ")[1] == "2" && gotGarfo2){
+			pstream.println(msg);
+			String response = in.readLine();
+			System.out.println("echo " + this.toString() + ": " + response);
+			if(msg.split(" ")[1] == "1"){
+				gotGarfo1 = false;
+			}
+			if(msg.split(" ")[1] == "2"){
+				gotGarfo2 = false;
+			}
+		} else if(msg.split(" ")[1] == "2" && gotGarfo2 || msg.split(" ")[1] == "3" && gotGarfo3){
+			pstream.println(msg);
+			String response = in.readLine();
+			System.out.println("echo " + this.toString() + ": " + response);
+			if(msg.split(" ")[1] == "2"){
+				gotGarfo2 = false;
+			}
+			if(msg.split(" ")[1] == "3"){
+				gotGarfo3 = false;
+			}
+		} else if(msg.split(" ")[1] == "3" && gotGarfo3 || msg.split(" ")[1] == "4" && gotGarfo4){
+			pstream.println(msg);
+			String response = in.readLine();
+			System.out.println("echo " + this.toString() + ": " + response);
+			if(msg.split(" ")[1] == "3"){
+				gotGarfo3 = false;
+			}
+			if(msg.split(" ")[1] == "4"){
+				gotGarfo4 = false;
+			}
+		} else if(msg.split(" ")[1] == "4" && gotGarfo4 || msg.split(" ")[1] == "5" && gotGarfo5){
+			pstream.println(msg);
+			String response = in.readLine();
+			System.out.println("echo " + this.toString() + ": " + response);
+			if(msg.split(" ")[1] == "4"){
+				gotGarfo4 = false;
+			}
+			if(msg.split(" ")[1] == "5"){
+				gotGarfo5 = false;
+			}
+		} else if(msg.split(" ")[1] == "5" && gotGarfo5 || msg.split(" ")[1] == "1" && gotGarfo1){
+			pstream.println(msg);
+			String response = in.readLine();
+			System.out.println("echo " + this.toString() + ": " + response);
+			if(msg.split(" ")[1] == "5"){
+				gotGarfo5 = false;
+			}
+			if(msg.split(" ")[1] == "1"){
+				gotGarfo1 = false;
+			}
+		}
+	}
+	
+	public void sendAcquireMsg(String msg, PrintStream pstream, BufferedReader in) throws IOException{		
+		pstream.println(msg);
+		String response = in.readLine();
+		System.out.println("echo " + this.toString() + ": " + response);
+		if(response == "true" && msg.split(" ")[1] == "1" && msg.split(" ")[1] == "2"){
+			if(msg.split(" ")[1] == "1"){
+				gotGarfo1 = true;
+			}
+			if(msg.split(" ")[1] == "2"){
+				gotGarfo2 = true;
+			}
+			this.comer();
+		} else if(response == "true" && msg.split(" ")[1] == "2" && msg.split(" ")[1] == "3"){
+			if(msg.split(" ")[1] == "2"){
+				gotGarfo2 = true;
+			}
+			if(msg.split(" ")[1] == "3"){
+				gotGarfo3 = true;
+			}
+		} else if(response == "true" && msg.split(" ")[1] == "3" && msg.split(" ")[1] == "4"){
+			if(msg.split(" ")[1] == "3"){
+				gotGarfo3 = true;
+			}
+			if(msg.split(" ")[1] == "4"){
+				gotGarfo4 = true;
+			}
+		} else if(response == "true" && msg.split(" ")[1] == "4" && msg.split(" ")[1] == "5"){
+			if(msg.split(" ")[1] == "4"){
+				gotGarfo4 = true;
+			}
+			if(msg.split(" ")[1] == "5"){
+				gotGarfo5 = true;
+			}
+		} else if(response == "true" && msg.split(" ")[1] == "5" && msg.split(" ")[1] == "1"){
+			if(msg.split(" ")[1] == "5"){
+				gotGarfo5 = true;
+			}
+			if(msg.split(" ")[1] == "1"){
+				gotGarfo1 = true;
+			}
+		}
+		
+	}
+    
 	public void run() {
-		
-		
+		String hostName = "localhost";
+		int portNumber = 15695;
+		String response;
+		try (   Socket echoSocket = new Socket(hostName, portNumber);
+				PrintStream pstream = new PrintStream(echoSocket.getOutputStream());
+				BufferedReader in = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));	
+				) {
+			
+			for(int m = 0; m < msgs.length; m++){
+				if(msgs[m].split(" ")[0] == "release"){
+					sendReleaseMsg(msgs[m], pstream, in);
+				}
+				if(msgs[m].split(" ")[0] == "acquire"){
+					sendAcquireMsg(msgs[m], pstream, in);
+				}
+				
+				pstream.println(msgs[m]);
+				response = in.readLine();
+				System.out.println("echo " + this.toString() + ": " + response);
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
