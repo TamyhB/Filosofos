@@ -56,11 +56,11 @@ public class Filosofo implements Runnable {
         	this.setEstado("Estou pensando...");
         	System.out.println(this.getEstado());
         	Random rand = new Random();
-        	System.out.println(rand.nextInt(9) * 1000);
+        	System.out.println(rand.nextInt(20) * 1000);
         	Thread.sleep(rand.nextInt(9) * 1000);
     }
     public static void main(String[] args) throws UnknownHostException, IOException, InterruptedException {
-    	Thread t1 = new Thread(new Filosofo(new String[]{"acquire 1 Platão", "acquire 2 Platão", "release 1 Platão", "release 2 Platão", "finish 0 Platão"}));
+    	Thread t1 = new Thread(new Filosofo(new String[]{"acquire 1 Platão", "acquire 2 Platão", "finish 0 Platão"}));
 		t1.start();
 		Thread t2 = new Thread(new Filosofo(new String[]{"acquire 2 Socrates", "acquire 3 Socrates", "release 2 Socrates", "release 3 Socrates", "finish 0 Socrates"}));
 		t2.start();
@@ -180,16 +180,16 @@ public class Filosofo implements Runnable {
 			
 			for(int m = 0; m < msgs.length; m++){
 				
-				if(msgs[m].split(" ")[0].equals("release")){
-					System.out.println("send liberar");
-					sendReleaseMsg(msgs[m], pstream, in);
-				}
-				if(msgs[m].split(" ")[0].equals("acquire")){
-					System.out.println("send adquirir");
-					sendAcquireMsg(msgs[m], pstream, in);
-				}
-				
-				//pstream.println(msgs[m]);
+//				if(msgs[m].split(" ")[0].equals("release")){
+//					System.out.println("send liberar");
+//					sendReleaseMsg(msgs[m], pstream, in);
+//				}
+//				if(msgs[m].split(" ")[0].equals("acquire")){
+//					System.out.println("send adquirir");
+//					sendAcquireMsg(msgs[m], pstream, in);
+//				}
+
+				pstream.println(msgs[m]);
 				response = in.readLine();
 				System.out.println("echo " + this.toString() + ": " + response);
 				try {
