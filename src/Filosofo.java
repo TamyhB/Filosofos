@@ -4,6 +4,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Random;
 
 public class Filosofo implements Runnable {
 	private boolean gotGarfo1;
@@ -51,21 +52,23 @@ public class Filosofo implements Runnable {
 		System.out.println("Estou comendo");
     }
 	
-    public void pensar(){
-    		this.setMaoDir(0);
-    		this.setMaoEsq(0);
+    public void pensar() throws InterruptedException{
         	this.setEstado("Estou pensando...");
+        	System.out.println(this.getEstado());
+        	Random rand = new Random();
+        	System.out.println(rand.nextInt(9) * 1000);
+        	Thread.sleep(rand.nextInt(9) * 1000);
     }
     public static void main(String[] args) throws UnknownHostException, IOException, InterruptedException {
-    	Thread t1 = new Thread(new Filosofo(new String[]{"acquire 1", "acquire 2", "release 1", "release 2", "finish 0"}));
+    	Thread t1 = new Thread(new Filosofo(new String[]{"acquire 1 Platão", "acquire 2 Platão", "release 1 Platão", "release 2 Platão", "finish 0 Platão"}));
 		t1.start();
-		Thread t2 = new Thread(new Filosofo(new String[]{"acquire 2", "acquire 3", "release 2", "release 3", "finish 0"}));
+		Thread t2 = new Thread(new Filosofo(new String[]{"acquire 2 Socrates", "acquire 3 Socrates", "release 2 Socrates", "release 3 Socrates", "finish 0 Socrates"}));
 		t2.start();
-		Thread t3 = new Thread(new Filosofo(new String[]{"acquire 3", "acquire 4", "release 3", "release 4", "finish 0"}));
+		Thread t3 = new Thread(new Filosofo(new String[]{"acquire 3 Descartes", "acquire 4 Descartes", "release 3 Descartes", "release 4 Descartes", "finish 0 Descartes"}));
 		t3.start();
-		Thread t4 = new Thread(new Filosofo(new String[]{"acquire 4", "acquire 5", "release 4", "release 5", "finish 0"}));
+		Thread t4 = new Thread(new Filosofo(new String[]{"acquire 4 Aristoteles", "acquire 5 Aristoteles", "release 4 Aristoteles", "release 5 Aristoteles", "finish 0 Aristoteles"}));
 		t4.start();
-		Thread t5 = new Thread(new Filosofo(new String[]{"acquire 5", "acquire 1", "release 5", "release 1", "finish 0"}));
+		Thread t5 = new Thread(new Filosofo(new String[]{"acquire 5 Tales", "acquire 1 Tales", "release 5 Tales", "release 1 Tales", "finish 0 Tales"}));
 		t5.start();
 		
 		t1.join();
@@ -140,65 +143,53 @@ public class Filosofo implements Runnable {
 	public void sendAcquireMsg(String msg, PrintStream pstream, BufferedReader in) throws IOException{		
 		pstream.println(msg);
 		String response = in.readLine();
-		System.out.println("echo " + this.toString() + ": " + response);
-		if(response == "true" && msg.split(" ")[1] == "1" && msg.split(" ")[1] == "2"){
+		System.out.println("Acquire " + response);
+		if(response == "true"){
 			if(msg.split(" ")[1] == "1"){
 				gotGarfo1 = true;
 			}
 			if(msg.split(" ")[1] == "2"){
 				gotGarfo2 = true;
 			}
-			this.comer();
-		} else if(response == "true" && msg.split(" ")[1] == "2" && msg.split(" ")[1] == "3"){
-			if(msg.split(" ")[1] == "2"){
-				gotGarfo2 = true;
-			}
-			if(msg.split(" ")[1] == "3"){
-				gotGarfo3 = true;
-			}
-		} else if(response == "true" && msg.split(" ")[1] == "3" && msg.split(" ")[1] == "4"){
 			if(msg.split(" ")[1] == "3"){
 				gotGarfo3 = true;
 			}
 			if(msg.split(" ")[1] == "4"){
 				gotGarfo4 = true;
 			}
-		} else if(response == "true" && msg.split(" ")[1] == "4" && msg.split(" ")[1] == "5"){
-			if(msg.split(" ")[1] == "4"){
-				gotGarfo4 = true;
-			}
 			if(msg.split(" ")[1] == "5"){
 				gotGarfo5 = true;
-			}
-		} else if(response == "true" && msg.split(" ")[1] == "5" && msg.split(" ")[1] == "1"){
-			if(msg.split(" ")[1] == "5"){
-				gotGarfo5 = true;
-			}
-			if(msg.split(" ")[1] == "1"){
-				gotGarfo1 = true;
 			}
 		}
-		
 	}
     
 	public void run() {
 		String hostName = "localhost";
 		int portNumber = 15695;
 		String response;
+		try {
+			this.pensar();
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		try (   Socket echoSocket = new Socket(hostName, portNumber);
 				PrintStream pstream = new PrintStream(echoSocket.getOutputStream());
 				BufferedReader in = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));	
 				) {
 			
 			for(int m = 0; m < msgs.length; m++){
-				if(msgs[m].split(" ")[0] == "release"){
+				
+				if(msgs[m].split(" ")[0].equals("release")){
+					System.out.println("send liberar");
 					sendReleaseMsg(msgs[m], pstream, in);
 				}
-				if(msgs[m].split(" ")[0] == "acquire"){
+				if(msgs[m].split(" ")[0].equals("acquire")){
+					System.out.println("send adquirir");
 					sendAcquireMsg(msgs[m], pstream, in);
 				}
 				
-				pstream.println(msgs[m]);
+				//pstream.println(msgs[m]);
 				response = in.readLine();
 				System.out.println("echo " + this.toString() + ": " + response);
 				try {
